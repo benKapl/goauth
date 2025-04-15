@@ -1,7 +1,8 @@
-package auth
+package goauth
 
 import (
 	"crypto/rand"
+
 	"encoding/hex"
 	"errors"
 	"fmt"
