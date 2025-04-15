@@ -68,42 +68,55 @@ func TestValidateJwt(t *testing.T) {
 	userID := uuid.New()
 	validSecret := "this_is_the_secret_to_use"
 	wrongSecret := "this_is_wrong_secret"
+	validIssuer := "valid-issuer"
+	wrongIssuer := "wrong-issuer"
 	validExpiration := 24 * time.Hour
 	passedExpiration := -24 * time.Hour // yesterday
 
 	// Create tests jwt
-	jwt, _ := MakeJWT(userID, validSecret, validExpiration)
-	expiredJWT, _ := MakeJWT(userID, validSecret, passedExpiration)
+	jwt, _ := MakeJWT(userID, validSecret, validIssuer, validExpiration)
+	expiredJWT, _ := MakeJWT(userID, validSecret, validIssuer, passedExpiration)
 
 	tests := []struct {
 		name    string
 		jwt     string
 		secret  string
+		issuer  string
 		wantErr bool
 	}{
 		{
 			name:    "Valid JWT",
 			jwt:     jwt,
 			secret:  validSecret,
+			issuer:  validIssuer,
 			wantErr: false,
 		},
 		{
 			name:    "Wrong secret JWT",
 			jwt:     jwt,
 			secret:  wrongSecret,
+			issuer:  validIssuer,
+			wantErr: true,
+		},
+		{
+			name:    "Wrong issuer",
+			jwt:     jwt,
+			secret:  validSecret,
+			issuer:  wrongIssuer,
 			wantErr: true,
 		},
 		{
 			name:    "Expired JWT",
 			jwt:     expiredJWT,
 			secret:  validSecret,
+			issuer:  validIssuer,
 			wantErr: true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := ValidateJWT(tt.jwt, tt.secret)
+			_, err := ValidateJWT(tt.jwt, tt.secret, tt.issuer)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ValidateJWT() error = %v, wantErr %v", err, tt.wantErr)
 			}
